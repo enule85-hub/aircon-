@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0056)file:///C:/Users/enule/Downloads/aircon_estimate_v3.html -->
+<!-- saved from url=(0058)file:///C:/Users/enule/Downloads/aircon_estimate_v3_2.html -->
 <html lang="ko"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -83,6 +83,63 @@
     color: rgba(255,255,255,0.45);
     font-weight: 300;
   }
+
+  .header-brand {
+    font-size: 12px;
+    font-weight: 900;
+    color: rgba(255,255,255,0.35);
+    letter-spacing: 2px;
+    margin-bottom: 12px;
+  }
+
+  .cta-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 16px;
+  }
+
+  .cta-kakao {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 16px;
+    background: #FEE500;
+    border: none;
+    border-radius: 14px;
+    color: #3A1D1D;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: 'Noto Sans KR', sans-serif;
+    text-decoration: none;
+    transition: all 0.2s;
+  }
+
+  .cta-kakao:hover { background: #F5DC00; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(254,229,0,0.3); }
+
+  .cta-consult {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 16px;
+    background: rgba(255,255,255,0.1);
+    border: 1.5px solid rgba(255,255,255,0.2);
+    border-radius: 14px;
+    color: #fff;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: 'Noto Sans KR', sans-serif;
+    text-decoration: none;
+    transition: all 0.2s;
+  }
+
+  .cta-consult:hover { background: rgba(255,255,255,0.18); }
 
   /* 진행바 */
   .progress-wrap {
@@ -410,6 +467,7 @@
 
   <!-- 헤더 -->
   <div class="header">
+    <div class="header-brand">JH에어컨</div>
     <div class="header-badge">❄ 무료 견적 서비스</div>
     <h1>에어컨 설치<br>견적 계산기</h1>
     <p>단계별 선택으로 예상 비용을 바로 확인하세요</p>
@@ -554,7 +612,17 @@
       ※ 실제 금액은 현장 상황에 따라 달라질 수 있습니다.<br>
       정확한 견적은 문의 주시면 친절히 안내드립니다.
     </div>
+    <div class="cta-wrap">
+      <a class="cta-kakao" href="https://open.kakao.com/" target="_blank">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><ellipse cx="12" cy="11" rx="10" ry="8" fill="#3A1D1D" opacity="0.15"></ellipse><path d="M12 3C6.477 3 2 6.582 2 11c0 2.709 1.563 5.096 3.938 6.594L5 21l3.938-2.156C9.906 19.271 10.938 19.4 12 19.4c5.523 0 10-3.582 10-8.4S17.523 3 12 3z" fill="#3A1D1D"></path></svg>
+        카카오톡으로 견적받기
+      </a>
+      <a class="cta-consult" href="tel:010-0000-0000">
+        📞 전화 상담하기
+      </a>
+    </div>
     <button class="reset-btn" onclick="resetAll()">↺ 다시 계산하기</button>
+    <div style="text-align:center; margin-top:16px; font-size:11px; color:rgba(255,255,255,0.25); letter-spacing:1px;">JH에어컨</div>
   </div>
 
 </div>
