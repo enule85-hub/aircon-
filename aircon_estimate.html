@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<!-- saved from url=(0053)file:///C:/Users/enule/Downloads/aircon_estimate.html -->
+<html lang="ko"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>에어컨 설치 견적 계산기</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap');
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background: #f5f5f5;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+
+  .card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 32px 28px;
+    width: 100%;
+    max-width: 420px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  }
+
+  .title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 4px;
+  }
+
+  .subtitle {
+    font-size: 12px;
+    color: #999;
+    margin-bottom: 28px;
+  }
+
+  .section-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: #555;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .type-btns {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+
+  .type-btn {
+    flex: 1;
+    padding: 12px;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    background: #fff;
+    font-size: 14px;
+    font-weight: 500;
+    color: #999;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'Noto Sans KR', sans-serif;
+  }
+
+  .type-btn.active {
+    border-color: #0064FF;
+    color: #0064FF;
+    background: #f0f5ff;
+  }
+
+  .row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 0;
+    border-bottom: 1px solid #f0f0f0;
+  }
+
+  .row:last-of-type { border-bottom: none; }
+
+  .row-label {
+    font-size: 14px;
+    color: #333;
+  }
+
+  .row-sub {
+    font-size: 11px;
+    color: #aaa;
+    margin-top: 2px;
+  }
+
+  .counter {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .cnt-btn {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: 1.5px solid #ddd;
+    background: #fff;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #555;
+    transition: all 0.15s;
+  }
+
+  .cnt-btn:hover { border-color: #0064FF; color: #0064FF; }
+
+  .cnt-val {
+    font-size: 15px;
+    font-weight: 700;
+    color: #1a1a1a;
+    min-width: 20px;
+    text-align: center;
+  }
+
+  .toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 0;
+    border-bottom: 1px solid #f0f0f0;
+  }
+
+  .toggle {
+    width: 44px;
+    height: 24px;
+    background: #ddd;
+    border-radius: 12px;
+    position: relative;
+    cursor: pointer;
+    transition: background 0.2s;
+    border: none;
+    outline: none;
+  }
+
+  .toggle.on { background: #0064FF; }
+
+  .toggle::after {
+    content: '';
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    background: #fff;
+    border-radius: 50%;
+    top: 3px;
+    left: 3px;
+    transition: left 0.2s;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+  }
+
+  .toggle.on::after { left: 23px; }
+
+  .divider {
+    height: 1px;
+    background: #f0f0f0;
+    margin: 20px 0;
+  }
+
+  .result-box {
+    background: #f8faff;
+    border-radius: 12px;
+    padding: 20px;
+    margin-top: 8px;
+  }
+
+  .result-items { margin-bottom: 14px; }
+
+  .result-item {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    color: #555;
+    margin-bottom: 6px;
+  }
+
+  .result-total {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 12px;
+    border-top: 1.5px solid #dce8ff;
+  }
+
+  .result-total-label {
+    font-size: 14px;
+    font-weight: 700;
+    color: #1a1a1a;
+  }
+
+  .result-total-price {
+    font-size: 22px;
+    font-weight: 700;
+    color: #0064FF;
+  }
+
+  .note {
+    font-size: 11px;
+    color: #bbb;
+    text-align: center;
+    margin-top: 16px;
+    line-height: 1.6;
+  }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="title">에어컨 설치 견적 계산기</div>
+  <div class="subtitle">선택하시면 예상 금액을 바로 확인할 수 있어요</div>
+
+  <div class="section-label">에어컨 종류</div>
+  <div class="type-btns">
+    <button class="type-btn active" onclick="setType(this)">벽걸이</button>
+    <button class="type-btn" onclick="setType(this)">스탠드</button>
+  </div>
+
+  <div class="section-label">추가 옵션</div>
+
+  <div class="row">
+    <div>
+      <div class="row-label">추가 배관</div>
+      <div class="row-sub">1m당 20,000원</div>
+    </div>
+    <div class="counter">
+      <button class="cnt-btn" onclick="change(&#39;pipe&#39;, -1)">−</button>
+      <span class="cnt-val" id="pipe-val">0</span>
+      <button class="cnt-btn" onclick="change(&#39;pipe&#39;, 1)">+</button>
+    </div>
+  </div>
+
+  <div class="toggle-row">
+    <div>
+      <div class="row-label">기존 제품 철거</div>
+      <div class="row-sub">30,000원</div>
+    </div>
+    <button class="toggle" id="toggle-removal" onclick="toggleOpt(&#39;removal&#39;)"></button>
+  </div>
+
+  <div class="toggle-row">
+    <div>
+      <div class="row-label">층수 추가 작업</div>
+      <div class="row-sub">20,000원</div>
+    </div>
+    <button class="toggle" id="toggle-floor" onclick="toggleOpt(&#39;floor&#39;)"></button>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="result-box">
+    <div class="result-items" id="result-items"><div class="result-item"><span>기본 설치 (벽걸이)</span><span>150,000원</span></div></div>
+    <div class="result-total">
+      <span class="result-total-label">예상 견적</span>
+      <span class="result-total-price" id="total-price">150,000원</span>
+    </div>
+  </div>
+
+  <div class="note">※ 실제 금액은 현장 상황에 따라 달라질 수 있습니다.<br>정확한 견적은 문의 주시면 안내드립니다.</div>
+</div>
+
+<script>
+  const BASE = 150000;
+  const PIPE_UNIT = 20000;
+  const REMOVAL = 30000;
+  const FLOOR = 20000;
+
+  let state = {
+    type: '벽걸이',
+    pipe: 0,
+    removal: false,
+    floor: false
+  };
+
+  function setType(btn) {
+    document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    state.type = btn.textContent;
+    calc();
+  }
+
+  function change(key, delta) {
+    state[key] = Math.max(0, state[key] + delta);
+    document.getElementById(key + '-val').textContent = state[key];
+    calc();
+  }
+
+  function toggleOpt(key) {
+    state[key] = !state[key];
+    const el = document.getElementById('toggle-' + key);
+    el.classList.toggle('on', state[key]);
+    calc();
+  }
+
+  function calc() {
+    let total = BASE;
+    let items = [{ label: `기본 설치 (${state.type})`, price: BASE }];
+
+    if (state.pipe > 0) {
+      const p = state.pipe * PIPE_UNIT;
+      items.push({ label: `추가 배관 ${state.pipe}m`, price: p });
+      total += p;
+    }
+    if (state.removal) {
+      items.push({ label: '기존 제품 철거', price: REMOVAL });
+      total += REMOVAL;
+    }
+    if (state.floor) {
+      items.push({ label: '층수 추가 작업', price: FLOOR });
+      total += FLOOR;
+    }
+
+    const html = items.map(i =>
+      `<div class="result-item"><span>${i.label}</span><span>${i.price.toLocaleString()}원</span></div>`
+    ).join('');
+    document.getElementById('result-items').innerHTML = html;
+    document.getElementById('total-price').textContent = total.toLocaleString() + '원';
+  }
+
+  calc();
+</script>
+
+
+</body></html>
