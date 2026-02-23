@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>에어컨 설치 견적 계산기</title>
+  <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800;900&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --primary: #1B3A6B;
+      --accent: #2563eb;
+      --primary-light: #e8eef8;
+      --bg: #f0f4fa;
+      --card: #ffffff;
+      --border: #c9d8ee;
+      --text: #1a2640;
+      --sub: #5a7099;
+      --card-shadow: 0 4px 24px rgba(27,58,107,0.10);
+    }
+
+    body {
+      font-family: 'Pretendard', 'Noto Sans KR', sans-serif;
+      background: var(--bg);
+      min-height: 100vh;
+      color: var(--text);
+      overflow-x: hidden;
+    }
+
+    header {
+      background: linear-gradient(135deg, #1B3A6B 0%, #2563eb 100%);
+      color: white; padding: 28px 20px 22px;
+      text-align: center; position: relative; overflow: hidden;
+    }
+    header::before { content:''; position:absolute; top:-40px; right:-40px; width:180px; height:180px; border-radius:50%; background:rgba(255,255,255,0.08); }
+    header::after  { content:''; position:absolute; bottom:-30px; left:-20px; width:120px; height:120px; border-radius:50%; background:rgba(255,255,255,0.06); }
+    header h1 { font-size:1.5rem; font-weight:900; letter-spacing:-0.5px; position:relative; }
+    header p  { margin-top:6px; font-size:0.85rem; opacity:0.88; position:relative; }
+
+    /* 진행 탭 */
+    .step-tabs {
+      display: flex; align-items: flex-start; justify-content: center;
+      padding: 18px 16px 0; background: var(--bg);
+    }
+    .tab-item {
+      display: flex; flex-direction: column; align-items: center;
+      position: relative; flex: 1; max-width: 72px;
+    }
+    .tab-item:not(:last-child)::after {
+      content: ''; position: absolute;
+      top: 17px; left: calc(50% + 18px);
+      width: calc(100% - 36px); height: 2px;
+      background: var(--border); transition: background 0.5s ease;
+    }
+    .tab-item.done:not(:last-child)::after { background: var(--accent); }
+    .tab-num {
+      width: 34px; height: 34px; border-radius: 50%;
+      border: 2.5px solid var(--border); background: white;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.82rem; font-weight: 800; color: var(--sub);
+      position: relative; z-index: 1;
+      transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .tab-item.active .tab-num {
+      border-color: var(--accent);
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      color: white; box-shadow: 0 2px 14px rgba(37,99,235,0.4);
+      transform: scale(1.12);
+    }
+    .tab-item.done .tab-num { border-color: var(--accent); background: var(--accent); color: white; }
+    .tab-num-inner { line-height:1; }
+    .tab-item.done .tab-num-inner { display: none; }
+    .tab-check { display: none; font-size: 0.78rem; }
+    .tab-item.done .tab-check { display: block; }
+    .tab-label {
+      margin-top: 5px; font-size: 0.6rem; font-weight: 600;
+      color: var(--sub); text-align: center; white-space: nowrap; transition: color 0.3s;
+    }
+    .tab-item.active .tab-label { color: var(--accent); font-weight: 700; }
+    .tab-item.done .tab-label   { color: var(--accent); }
+
+    /* 슬라이더 */
+    .slider-wrap { max-width: 560px; margin: 0 auto; padding: 14px 16px 0; overflow: hidden; }
+
+    /* 카드 */
+    .step-card {
+      background: var(--card); border-radius: 20px;
+      box-shadow: var(--card-shadow); padding: 22px 20px 20px;
+      border: 1.5px solid var(--border); width: 100%;
+    }
+    .step-card.enter-right { animation: enterRight 0.42s cubic-bezier(0.25,0.46,0.45,0.94) both; }
+    .step-card.enter-left  { animation: enterLeft  0.42s cubic-bezier(0.25,0.46,0.45,0.94) both; }
+    @keyframes enterRight { from{opacity:0;transform:translateX(60px) scale(0.97)} to{opacity:1;transform:translateX(0) scale(1)} }
+    @keyframes enterLeft  { from{opacity:0;transform:translateX(-60px) scale(0.97)} to{opacity:1;transform:translateX(0) scale(1)} }
+
+    .step-header {
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 16px; padding-bottom: 13px;
+      border-bottom: 1.5px solid var(--primary-light);
+    }
+    .step-icon { font-size: 1.2rem; }
+    .step-title { font-size: 1rem; font-weight: 800; color: var(--text); }
+
+    .options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .options.cols-1 { grid-template-columns: 1fr; }
+    .options.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+
+    .opt-btn {
+      border: 1.5px solid var(--border); background: #f5f8ff;
+      border-radius: 14px; padding: 15px 12px;
+      font-family: inherit; font-size: 0.9rem; font-weight: 600;
+      color: var(--text); cursor: pointer;
+      transition: all 0.18s; text-align: center; line-height: 1.5;
+    }
+    .opt-btn:hover { border-color: var(--accent); background: var(--primary-light); transform: translateY(-2px); }
+    .opt-btn.selected {
+      border-color: var(--primary);
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      color: white; font-weight: 700;
+      box-shadow: 0 4px 16px rgba(27,58,107,0.25);
+    }
+
+    /* 지역 선택 셀렉트 */
+    .region-select-wrap { display: flex; flex-direction: column; gap: 14px; }
+    .region-group { display: flex; flex-direction: column; gap: 6px; }
+    .input-label { font-size: 0.85rem; font-weight: 600; color: var(--sub); display: block; }
+
+    .select-row { display: flex; gap: 8px; }
+    .region-select {
+      flex: 1; padding: 13px 14px; border-radius: 12px;
+      border: 1.5px solid var(--border); font-family: inherit;
+      font-size: 0.92rem; color: var(--text); background: white;
+      outline: none; cursor: pointer; transition: border-color 0.2s;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%235a7099' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+      padding-right: 36px;
+    }
+    .region-select:focus { border-color: var(--accent); }
+    .region-select:disabled { background-color: #f5f8ff; color: #aab8cc; cursor: not-allowed; }
+
+    /* 거리 뱃지 */
+    .distance-badge {
+      display: none;
+      align-items: center; gap: 8px;
+      background: var(--primary-light);
+      border: 1.5px solid var(--border);
+      border-radius: 12px; padding: 10px 14px;
+      margin-top: 4px;
+    }
+    .distance-badge.show { display: flex; }
+    .distance-badge .dist-km { font-size: 0.88rem; font-weight: 700; color: var(--primary); }
+    .distance-badge .dist-fee {
+      margin-left: auto; font-size: 0.95rem; font-weight: 800;
+      color: #e8380d;
+    }
+    .distance-badge .dist-fee.free { color: #16a34a; }
+
+    .desc-box {
+      margin-top: 0; background: #e8eef8; border: 1px solid #b8cce8;
+      border-radius: 10px; font-size: 0.82rem; color: var(--primary);
+      font-weight: 600;
+      max-height: 0; overflow: hidden; opacity: 0;
+      transition: max-height 0.35s ease, opacity 0.35s ease, padding 0.35s ease, margin 0.35s ease;
+      padding-top: 0; padding-bottom: 0;
+    }
+    .desc-box.show { max-height: 60px; opacity: 1; padding: 10px 14px; margin-top: 10px; }
+
+    .extra-item {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 13px 0; border-bottom: 1px solid #eaf0f8; gap: 12px;
+    }
+    .extra-item:last-of-type { border-bottom: none; }
+    .extra-label { font-size: 0.9rem; font-weight: 600; flex: 1; }
+    .extra-label small { display: block; color: var(--sub); font-size: 0.78rem; margin-top: 3px; }
+    .extra-controls { display: flex; align-items: center; gap: 8px; }
+
+    .cnt-btn {
+      width: 36px; height: 36px; border-radius: 50%;
+      border: 1.5px solid #b8cce8; background: var(--primary-light);
+      font-size: 1.2rem; font-weight: 700; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--primary); transition: all 0.15s;
+    }
+    .cnt-btn:hover { background: var(--primary); color: white; border-color: var(--primary); }
+    .cnt-val { font-size: 1rem; font-weight: 800; min-width: 26px; text-align: center; color: var(--primary); }
+
+    .toggle-btn {
+      width: 50px; height: 28px; border-radius: 14px; border: none;
+      background: #d0ddf0; cursor: pointer; position: relative;
+      transition: background 0.3s; flex-shrink: 0;
+    }
+    .toggle-btn::after {
+      content: ''; position: absolute; top: 4px; left: 4px;
+      width: 20px; height: 20px; border-radius: 50%; background: white;
+      transition: left 0.3s cubic-bezier(0.34,1.56,0.64,1);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+    }
+    .toggle-btn.on { background: linear-gradient(135deg, var(--primary), var(--accent)); }
+    .toggle-btn.on::after { left: 26px; }
+
+    .nav-row { display: flex; gap: 10px; margin-top: 18px; }
+    .btn-prev {
+      flex: 0 0 auto; padding: 13px 18px; border-radius: 12px;
+      border: 1.5px solid var(--border); background: white;
+      font-family: inherit; font-size: 0.9rem; font-weight: 700;
+      color: var(--sub); cursor: pointer; transition: all 0.18s;
+    }
+    .btn-prev:hover { border-color: var(--primary); color: var(--primary); }
+    .btn-next {
+      flex: 1; padding: 14px; border-radius: 12px; border: none;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      color: white; font-family: inherit; font-size: 0.95rem; font-weight: 800;
+      cursor: pointer; transition: all 0.2s;
+      box-shadow: 0 4px 14px rgba(27,58,107,0.25);
+    }
+    .btn-next:hover { opacity: 0.9; transform: translateY(-1px); }
+    .btn-next:disabled { background: #c8d5e8; box-shadow: none; cursor: not-allowed; transform: none; }
+
+    .container-bottom { max-width: 560px; margin: 0 auto; padding: 14px 16px 50px; }
+    .result-card {
+      background: linear-gradient(135deg, #1B3A6B 0%, #2563eb 100%);
+      border-radius: 20px; padding: 26px 22px;
+      color: white; box-shadow: 0 8px 32px rgba(27,58,107,0.25);
+    }
+    .result-card.enter-right { animation: enterRight 0.42s cubic-bezier(0.25,0.46,0.45,0.94) both; }
+    .result-title { font-size: 0.88rem; opacity: 0.88; margin-bottom: 6px; font-weight: 500; }
+    .result-total { font-size: 2.3rem; font-weight: 900; letter-spacing: -1.5px; }
+    .result-total span { font-size: 1rem; font-weight: 500; opacity: 0.85; }
+    .result-breakdown { margin-top: 18px; background: rgba(0,0,0,0.15); border-radius: 12px; padding: 14px; }
+    .breakdown-row { display: flex; justify-content: space-between; font-size: 0.85rem; padding: 5px 0; opacity: 0.92; }
+    .breakdown-row.total-row { border-top: 1px solid rgba(255,255,255,0.25); margin-top: 10px; padding-top: 12px; font-weight: 800; font-size: 1rem; opacity: 1; }
+    .notice { margin-top: 14px; background: rgba(0,0,0,0.12); border-radius: 10px; padding: 12px; font-size: 0.78rem; line-height: 1.7; opacity: 0.88; }
+
+    .kakao-share-btn {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      width: 100%; margin-top: 12px; padding: 15px; border-radius: 14px;
+      border: none; background: #FEE500;
+      font-family: inherit; font-size: 0.95rem; font-weight: 800;
+      color: #191919; cursor: pointer; transition: all 0.18s;
+      box-shadow: 0 2px 10px rgba(254,229,0,0.4);
+    }
+    .kakao-share-btn:hover { background: #f0d800; transform: translateY(-1px); }
+    .kakao-share-btn img { width: 22px; height: 22px; }
+
+    .reset-btn {
+      display: block; width: 100%; margin-top: 10px; padding: 14px;
+      border-radius: 14px; border: 1.5px solid #b8cce8; background: white;
+      font-family: inherit; font-size: 0.95rem; font-weight: 700;
+      color: var(--primary); cursor: pointer; transition: all 0.18s;
+    }
+    .reset-btn:hover { background: var(--primary); color: white; border-color: var(--primary); }
+
+    .hidden { display: none !important; }
+    select.input-field { cursor: pointer; }
+
+    /* 이전 btn (단독) */
+    .solo-prev {
+      margin-top: 16px; padding: 10px 16px; border-radius: 12px;
+      border: 1.5px solid var(--border); background: white;
+      font-family: inherit; font-size: 0.88rem; font-weight: 700;
+      color: var(--sub); cursor: pointer; transition: all 0.18s;
+    }
+    .solo-prev:hover { border-color: var(--primary); color: var(--primary); }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>❄️ 에어컨 설치 견적 계산기</h1>
+  <p>항목을 선택하시면 예상 견적을 바로 확인할 수 있어요</p>
+</header>
+
+<!-- 진행 탭 -->
+<div class="step-tabs" id="step-tabs">
+  <div class="tab-item active" id="tab1">
+    <div class="tab-num"><span class="tab-num-inner">1</span><span class="tab-check">✓</span></div>
+    <div class="tab-label">설치유형</div>
+  </div>
+  <div class="tab-item" id="tab2">
+    <div class="tab-num"><span class="tab-num-inner">2</span><span class="tab-check">✓</span></div>
+    <div class="tab-label">이전장소</div>
+  </div>
+  <div class="tab-item" id="tab3">
+    <div class="tab-num"><span class="tab-num-inner">3</span><span class="tab-check">✓</span></div>
+    <div class="tab-label">에어컨종류</div>
+  </div>
+  <div class="tab-item" id="tab4">
+    <div class="tab-num"><span class="tab-num-inner">4</span><span class="tab-check">✓</span></div>
+    <div class="tab-label">제조사·년식</div>
+  </div>
+  <div class="tab-item" id="tab5">
+    <div class="tab-num"><span class="tab-num-inner">5</span><span class="tab-check">✓</span></div>
+    <div class="tab-label">추가옵션</div>
+  </div>
+</div>
+
+<div class="slider-wrap" id="slider-wrap">
+
+  <!-- 1단계: 설치 유형 -->
+  <div class="step-card enter-right" id="step1">
+    <div class="step-header">
+      <span class="step-icon">🏠</span>
+      <div class="step-title">설치 유형 선택</div>
+    </div>
+    <div class="options cols-1">
+      <button class="opt-btn" onclick="selectOpt(1,'이전설치',this)">
+        이전설치<br><small style="font-weight:400;font-size:0.78rem;opacity:0.7">기존 에어컨을 다른 장소로 이동</small>
+      </button>
+      <button class="opt-btn" onclick="selectOpt(1,'재설치',this)">
+        재설치<br><small style="font-weight:400;font-size:0.78rem;opacity:0.7">기존 장소에 다시 설치 (준비중)</small>
+      </button>
+    </div>
+  </div>
+
+  <!-- 2단계: 지역 선택 -->
+  <div class="step-card hidden" id="step2">
+    <div class="step-header">
+      <span class="step-icon">📍</span>
+      <div class="step-title">이전 장소 및 설치 장소</div>
+    </div>
+    <div class="region-select-wrap">
+
+      <!-- 출발지 -->
+      <div class="region-group">
+        <label class="input-label">📍 이전 장소 (현재 에어컨 위치)</label>
+        <div class="select-row">
+          <select class="region-select" id="from-sido" onchange="onSidoChange('from')">
+            <option value="">시/도 선택</option>
+          </select>
+          <select class="region-select" id="from-sigungu" onchange="onSigunguChange()" disabled>
+            <option value="">구/군/시 선택</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- 도착지 -->
+      <div class="region-group">
+        <label class="input-label">📍 설치 장소 (새로 설치할 위치)</label>
+        <div class="select-row">
+          <select class="region-select" id="to-sido" onchange="onSidoChange('to')">
+            <option value="">시/도 선택</option>
+          </select>
+          <select class="region-select" id="to-sigungu" onchange="onSigunguChange()" disabled>
+            <option value="">구/군/시 선택</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- 거리 뱃지 -->
+      <div class="distance-badge" id="distance-badge">
+        <span>🚗</span>
+        <span class="dist-km" id="dist-km-text"></span>
+        <span class="dist-fee" id="dist-fee-text"></span>
+      </div>
+
+    </div>
+    <div class="nav-row">
+      <button class="btn-prev" onclick="goPrev(2)">← 이전</button>
+      <button class="btn-next" id="location-next-btn" onclick="goNext(2)" disabled>다음 단계 →</button>
+    </div>
+  </div>
+
+  <!-- 3단계: 에어컨 종류 -->
+  <div class="step-card hidden" id="step3">
+    <div class="step-header">
+      <span class="step-icon">❄️</span>
+      <div class="step-title">에어컨 종류 선택</div>
+    </div>
+    <div class="options cols-1">
+      <button class="opt-btn" onclick="selectOpt(3,'벽걸이',this)">벽걸이 <span style="font-weight:400;opacity:0.75;font-size:0.88rem">160,000원</span><br><small style="font-weight:400;font-size:0.78rem;opacity:0.6">(기본설치비 배관5m+가스충전+타공1회)</small></button>
+      <button class="opt-btn" onclick="selectOpt(3,'스탠드',this)">스탠드 <span style="font-weight:400;opacity:0.75;font-size:0.88rem">190,000원</span><br><small style="font-weight:400;font-size:0.78rem;opacity:0.6">(기본설치비 배관5m+가스충전+타공1회)</small></button>
+      <button class="opt-btn" onclick="selectOpt(3,'투인원',this)">투인원 <span style="font-weight:400;opacity:0.75;font-size:0.88rem">310,000원</span><br><small style="font-weight:400;font-size:0.78rem;opacity:0.6">(기본설치비 벽걸이5m+스탠드5m+가스충전+타공2회)</small></button>
+      <button class="opt-btn" onclick="selectOpt(3,'냉난방벽걸이',this)">냉난방기 벽걸이 <span style="font-weight:400;opacity:0.75;font-size:0.88rem">별도문의</span></button>
+      <button class="opt-btn" onclick="selectOpt(3,'냉난방스탠드',this)">냉난방기 스탠드 <span style="font-weight:400;opacity:0.75;font-size:0.88rem">별도문의</span></button>
+    </div>
+    <button class="solo-prev" onclick="goPrev(3)">← 이전</button>
+  </div>
+
+  <!-- 4단계: 제조사 + 년식 -->
+  <div class="step-card hidden" id="step4">
+    <div class="step-header">
+      <span class="step-icon">🏭</span>
+      <div class="step-title">제조사 및 년식 선택</div>
+    </div>
+    <div class="options cols-3" style="margin-bottom:14px;">
+      <button class="opt-btn" onclick="selectOpt(4,'LG',this)">LG</button>
+      <button class="opt-btn" onclick="selectOpt(4,'삼성',this)">삼성</button>
+      <button class="opt-btn" onclick="selectOpt(4,'캐리어',this)">캐리어</button>
+      <button class="opt-btn" onclick="selectOpt(4,'위니아',this)">위니아</button>
+      <button class="opt-btn" onclick="selectOpt(4,'기타',this)">기타</button>
+    </div>
+    <div class="desc-box" id="smartlink-desc">
+      🔧 <strong>스마트링크 (+40,000원)</strong> — 삼성 전용 배관연결부속이 추가됩니다.
+    </div>
+    <div style="margin-top:14px;">
+      <label class="input-label" style="margin-bottom:6px;">📅 에어컨 년식</label>
+      <select class="region-select" id="year-select" onchange="selectYear(this.value)" style="width:100%;">
+        <option value="">년식을 선택해주세요</option>
+      </select>
+    </div>
+    <button class="solo-prev" onclick="goPrev(4)">← 이전</button>
+  </div>
+
+  <!-- 5단계: 추가 옵션 -->
+  <div class="step-card hidden" id="step5">
+    <div class="step-header">
+      <span class="step-icon">⚙️</span>
+      <div class="step-title">추가 옵션 선택</div>
+    </div>
+    <div class="extra-item">
+      <div class="extra-label">배관 추가<small id="pipe-price-label">1m당 15,000원</small></div>
+      <div class="extra-controls">
+        <button class="cnt-btn" onclick="changePipe(-1)">−</button>
+        <div class="cnt-val" id="pipe-cnt">0</div>
+        <button class="cnt-btn" onclick="changePipe(1)">+</button>
+        <span style="font-size:0.8rem;color:var(--sub)">m</span>
+      </div>
+    </div>
+    <div class="extra-item">
+      <div class="extra-label">실외기 앵글<small id="angle-price-label">벽걸이용 100,000원</small></div>
+      <div class="extra-controls">
+        <button class="toggle-btn" id="angle-toggle" onclick="toggleExtra('angle')"></button>
+      </div>
+    </div>
+    <div class="extra-item">
+      <div class="extra-label">배수펌프<small>100,000원</small></div>
+      <div class="extra-controls">
+        <button class="toggle-btn" id="pump-toggle" onclick="toggleExtra('pump')"></button>
+      </div>
+    </div>
+    <div class="nav-row">
+      <button class="btn-prev" onclick="goPrev(5)">← 이전</button>
+      <button class="btn-next" onclick="showResult()">견적 확인 →</button>
+    </div>
+  </div>
+
+</div><!-- /slider-wrap -->
+
+<!-- 결과 -->
+<div class="container-bottom">
+  <div class="result-card hidden" id="result">
+    <div class="result-title">예상 견적 금액</div>
+    <div class="result-total" id="total-price">0 <span>원</span></div>
+    <div class="result-breakdown" id="breakdown"></div>
+    <div class="notice">
+      ※ 위 금액은 예상 견적이며, 현장 상황에 따라 변동될 수 있습니다.<br>
+      정확한 견적은 방문 후 안내드립니다.
+    </div>
+  </div>
+  <button class="kakao-share-btn hidden" id="kakao-btn" onclick="shareKakao()">
+    <img src="https://developers.kakao.com/assets/img/about/logos/kakaolink/kakaolink_btn_small.png" alt="카카오"/>
+    카카오톡으로 견적 저장하기
+  </button>
+  <button class="reset-btn hidden" id="reset-btn" onclick="resetAll()">🔄 다시 계산하기</button>
+</div>
+
+<script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js" integrity="sha384-TiCUE00h649CAMonG018J2ujOgDKW/kVWlChEuu4jK2vxfAAD0eZxzCKakxg55G4" crossorigin="anonymous"></script>
+<script>
+// ══════════════════════════════════════════
+//  수도권 지역 좌표 데이터 (시청/구청/군청 기준)
+// ══════════════════════════════════════════
+const REGION_DATA = {
+  '서울': {
+    '종로구':[37.5735,126.9790],'중구':[37.5641,126.9979],'용산구':[37.5324,126.9896],
+    '성동구':[37.5635,127.0369],'광진구':[37.5385,127.0823],'동대문구':[37.5744,127.0396],
+    '중랑구':[37.6063,127.0928],'성북구':[37.5894,127.0167],'강북구':[37.6396,127.0257],
+    '도봉구':[37.6688,127.0471],'노원구':[37.6542,127.0568],'은평구':[37.6027,126.9291],
+    '서대문구':[37.5791,126.9368],'마포구':[37.5638,126.9084],'양천구':[37.5170,126.8666],
+    '강서구':[37.5509,126.8495],'구로구':[37.4955,126.8877],'금천구':[37.4600,126.9001],
+    '영등포구':[37.5263,126.8967],'동작구':[37.5124,126.9395],'관악구':[37.4784,126.9516],
+    '서초구':[37.4836,127.0327],'강남구':[37.4979,127.0622],'송파구':[37.5145,127.1059],
+    '강동구':[37.5301,127.1238]
+  },
+  '인천': {
+    '중구':[37.4738,126.6216],'동구':[37.4739,126.6431],'미추홀구':[37.4638,126.6500],
+    '연수구':[37.4106,126.6782],'남동구':[37.4470,126.7314],'부평구':[37.5077,126.7218],
+    '계양구':[37.5375,126.7376],'서구':[37.5456,126.6759],
+    '강화군':[37.7473,126.4877],'옹진군':[37.4113,126.3260]
+  },
+  '경기': {
+    '수원시':[37.2636,127.0286],'성남시':[37.4201,127.1268],'의정부시':[37.7381,127.0437],
+    '안양시':[37.3943,126.9568],'부천시':[37.5034,126.7660],'광명시':[37.4784,126.8650],
+    '평택시':[36.9921,127.1129],'동두천시':[37.9038,127.0608],'안산시':[37.3219,126.8309],
+    '고양시':[37.6583,126.8320],'과천시':[37.4292,126.9875],'구리시':[37.5943,127.1294],
+    '남양주시':[37.6360,127.2165],'오산시':[37.1498,127.0774],'시흥시':[37.3800,126.8031],
+    '군포시':[37.3614,126.9352],'의왕시':[37.3448,126.9679],'하남시':[37.5395,127.2149],
+    '용인시':[37.2411,127.1776],'파주시':[37.7599,126.7798],'이천시':[37.2724,127.4349],
+    '안성시':[37.0079,127.2798],'김포시':[37.6152,126.7155],'화성시':[37.1996,126.8312],
+    '광주시':[37.4296,127.2550],'양주시':[37.7857,127.0456],'포천시':[37.8942,127.2003],
+    '여주시':[37.2982,127.6375],'연천군':[38.0966,127.0748],'가평군':[37.8314,127.5109],
+    '양평군':[37.4916,127.4875]
+  }
+};
+
+// ══════════════════════════════════════════
+//  거리 계산 및 출장비
+// ══════════════════════════════════════════
+function haversine(lat1, lon1, lat2, lon2) {
+  const R = 6371;
+  const dLat = (lat2-lat1)*Math.PI/180;
+  const dLon = (lon2-lon1)*Math.PI/180;
+  const a = Math.sin(dLat/2)**2 +
+    Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+  return R * 2 * Math.asin(Math.sqrt(a));
+}
+
+function calcMoveFee(km) {
+  // 직선거리 × 1.3 보정
+  const d = km * 1.3;
+  if (d <= 30)  return { fee: 0,      label: '출장비 무료', free: true };
+  if (d <= 50)  return { fee: 20000,  label: '출장비 20,000원', free: false };
+  if (d <= 70)  return { fee: 30000,  label: '출장비 30,000원', free: false };
+  if (d <= 90)  return { fee: 40000,  label: '출장비 40,000원', free: false };
+  if (d <= 110) return { fee: 50000,  label: '출장비 50,000원', free: false };
+  if (d <= 130) return { fee: 60000,  label: '출장비 60,000원', free: false };
+  return { fee: null, label: '별도 문의', free: false };
+}
+
+// ══════════════════════════════════════════
+//  카카오 SDK
+// ══════════════════════════════════════════
+try {
+  if (typeof Kakao !== 'undefined' && !Kakao.isInitialized()) {
+    Kakao.init('bea973d99b01f7dbebc13733311c2579');
+  }
+} catch(e) { console.warn('카카오 초기화 실패', e); }
+
+// ══════════════════════════════════════════
+//  앱 상태
+// ══════════════════════════════════════════
+const state = {
+  step1: null, step3: null, step3Price: 0,
+  step4maker: null, year: null,
+  pipeCnt: 0, angle: false, pump: false, isInquiry: false,
+  fromCoord: null, toCoord: null,
+  fromLabel: '', toLabel: '',
+  distKm: 0, moveFee: 0, moveLabel: ''
+};
+
+const BASE_PRICE = {
+  '이전설치': { '벽걸이':160000,'스탠드':190000,'투인원':310000,'냉난방벽걸이':null,'냉난방스탠드':null },
+  '재설치':   { '벽걸이':160000,'스탠드':190000,'투인원':310000,'냉난방벽걸이':null,'냉난방스탠드':null }
+};
+const PIPE_PRICE  = { '벽걸이':15000,'냉난방벽걸이':15000,'스탠드':18000,'투인원':18000,'냉난방스탠드':18000 };
+const ANGLE_PRICE = { '벽걸이':100000,'냉난방벽걸이':100000,'스탠드':120000,'투인원':120000,'냉난방스탠드':120000 };
+const SMARTLINK=40000, PUMP=100000, STEP_MAX=5;
+
+// ══════════════════════════════════════════
+//  셀렉트 초기화
+// ══════════════════════════════════════════
+(function initSelects() {
+  // 시도 옵션
+  ['from-sido','to-sido'].forEach(id => {
+    const sel = document.getElementById(id);
+    ['서울','인천','경기'].forEach(s => {
+      const o = document.createElement('option');
+      o.value = s; o.textContent = s;
+      sel.appendChild(o);
+    });
+  });
+
+  // 년식
+  const ys = document.getElementById('year-select');
+  for (let y=2025; y>=2006; y--) {
+    const o = document.createElement('option');
+    o.value=y; o.textContent=y+'년'; ys.appendChild(o);
+  }
+})();
+
+function onSidoChange(dir) {
+  const sido = document.getElementById(dir+'-sido').value;
+  const sigungu = document.getElementById(dir+'-sigungu');
+  sigungu.innerHTML = '<option value="">구/군/시 선택</option>';
+  if (sido && REGION_DATA[sido]) {
+    Object.keys(REGION_DATA[sido]).forEach(sg => {
+      const o = document.createElement('option');
+      o.value=sg; o.textContent=sg; sigungu.appendChild(o);
+    });
+    sigungu.disabled = false;
+  } else {
+    sigungu.disabled = true;
+  }
+  // 좌표 초기화
+  if (dir==='from') { state.fromCoord=null; state.fromLabel=''; }
+  else              { state.toCoord=null;   state.toLabel=''; }
+  updateDistanceBadge();
+}
+
+function onSigunguChange() {
+  const fSido = document.getElementById('from-sido').value;
+  const fSg   = document.getElementById('from-sigungu').value;
+  const tSido = document.getElementById('to-sido').value;
+  const tSg   = document.getElementById('to-sigungu').value;
+
+  if (fSido && fSg && REGION_DATA[fSido]?.[fSg]) {
+    state.fromCoord = REGION_DATA[fSido][fSg];
+    state.fromLabel = fSido==='경기' ? fSg : `${fSido} ${fSg}`;
+  }
+  if (tSido && tSg && REGION_DATA[tSido]?.[tSg]) {
+    state.toCoord = REGION_DATA[tSido][tSg];
+    state.toLabel = tSido==='경기' ? tSg : `${tSido} ${tSg}`;
+  }
+  updateDistanceBadge();
+}
+
+function updateDistanceBadge() {
+  const badge = document.getElementById('distance-badge');
+  const nextBtn = document.getElementById('location-next-btn');
+
+  if (state.fromCoord && state.toCoord) {
+    const km = haversine(...state.fromCoord, ...state.toCoord);
+    const result = calcMoveFee(km);
+    state.distKm  = Math.round(km * 1.3);
+    state.moveFee = result.fee || 0;
+    state.moveLabel = result.label;
+
+    document.getElementById('dist-km-text').textContent =
+      `이동거리 약 ${state.distKm}km`;
+    const feeEl = document.getElementById('dist-fee-text');
+    feeEl.textContent = result.label;
+    feeEl.className = 'dist-fee' + (result.free ? ' free' : '');
+
+    badge.classList.add('show');
+    nextBtn.disabled = (result.fee === null); // 별도문의면 막기
+    if (result.fee === null) nextBtn.textContent = '별도 문의 필요';
+    else nextBtn.textContent = '다음 단계 →';
+    nextBtn.disabled = false;
+  } else {
+    badge.classList.remove('show');
+    nextBtn.disabled = true;
+  }
+}
+
+// ══════════════════════════════════════════
+//  단계 선택 처리
+// ══════════════════════════════════════════
+function selectOpt(step, val, btn) {
+  btn.closest('.step-card').querySelectorAll('.opt-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+
+  if (step===1) {
+    if (val==='재설치') {
+      btn.classList.remove('selected');
+      alert('재설치 견적은 준비 중입니다! 곧 추가될 예정이에요 😊');
+      return;
+    }
+    state.step1 = val;
+    setTimeout(() => goToStep(1, 2), 300);
+  }
+
+  if (step===3) {
+    state.step3 = val;
+    const price = BASE_PRICE[state.step1][val];
+    state.step3Price = price||0;
+    state.isInquiry = (price===null);
+    document.getElementById('pipe-price-label').textContent = `1m당 ${(PIPE_PRICE[val]||15000).toLocaleString()}원`;
+    const isWall = val==='벽걸이'||val==='냉난방벽걸이';
+    document.getElementById('angle-price-label').textContent = isWall ? '벽걸이용 100,000원' : '스탠드/투인원용 120,000원';
+
+    if (state.isInquiry) setTimeout(() => showInquiryResult(), 300);
+    else setTimeout(() => goToStep(3, 4), 300);
+  }
+
+  if (step===4) {
+    state.step4maker = val;
+    document.getElementById('smartlink-desc').classList.toggle('show', val==='삼성');
+    checkStep4();
+  }
+}
+
+function selectYear(val) {
+  state.year = val || null;
+  checkStep4();
+}
+
+function checkStep4() {
+  if (state.step4maker && state.year) {
+    setTimeout(() => goToStep(4, 5), 300);
+  }
+}
+
+function goNext(from) {
+  if (from===2) goToStep(2, 3);
+}
+function goPrev(from) {
+  goToStep(from, from-1, true);
+}
+
+// ══════════════════════════════════════════
+//  화면 전환
+// ══════════════════════════════════════════
+function goToStep(from, to, goingBack=false) {
+  const fromEl = document.getElementById('step'+from);
+  fromEl.style.transition = 'opacity 0.26s ease, transform 0.26s ease';
+  fromEl.style.opacity = '0';
+  fromEl.style.transform = goingBack ? 'translateX(50px) scale(0.97)' : 'translateX(-50px) scale(0.97)';
+
+  setTimeout(() => {
+    fromEl.classList.add('hidden');
+    fromEl.style.transition=''; fromEl.style.opacity=''; fromEl.style.transform='';
+
+    if (to===5 && !goingBack) {
+      state.pipeCnt=0; state.angle=false; state.pump=false;
+      document.getElementById('pipe-cnt').textContent='0';
+      document.getElementById('angle-toggle').className='toggle-btn';
+      document.getElementById('pump-toggle').className='toggle-btn';
+    }
+    if (to===4 && goingBack) {
+      state.step4maker=null; state.year=null;
+      document.getElementById('year-select').value='';
+      document.getElementById('smartlink-desc').classList.remove('show');
+      document.querySelectorAll('#step4 .opt-btn').forEach(b=>b.classList.remove('selected'));
+    }
+
+    const toEl = document.getElementById('step'+to);
+    toEl.classList.remove('hidden','enter-right','enter-left');
+    void toEl.offsetWidth;
+    toEl.classList.add(goingBack ? 'enter-left' : 'enter-right');
+    updateTabs(to);
+  }, 240);
+}
+
+function showInquiryResult() {
+  const fromEl = document.getElementById('step3');
+  fromEl.style.transition='opacity 0.26s ease, transform 0.26s ease';
+  fromEl.style.opacity='0'; fromEl.style.transform='translateX(-50px) scale(0.97)';
+  setTimeout(()=>{
+    fromEl.classList.add('hidden');
+    fromEl.style.transition=''; fromEl.style.opacity=''; fromEl.style.transform='';
+    updateTabs(null);
+    const result=document.getElementById('result');
+    result.classList.remove('hidden','enter-right');
+    void result.offsetWidth; result.classList.add('enter-right');
+    document.getElementById('total-price').innerHTML='별도 문의 <span>필요</span>';
+    document.getElementById('breakdown').innerHTML=`
+      <div class="breakdown-row"><span>${state.step3}</span><span>별도 견적</span></div>
+      <div class="breakdown-row" style="margin-top:8px;opacity:0.85;font-size:0.8rem;">
+        <span>📞 냉난방 제품은 현장 확인 후 정확한 견적을 안내드립니다.</span>
+      </div>`;
+    document.getElementById('kakao-btn').classList.remove('hidden');
+    document.getElementById('reset-btn').classList.remove('hidden');
+  },240);
+}
+
+function showResult() {
+  const fromEl=document.getElementById('step5');
+  fromEl.style.transition='opacity 0.26s ease, transform 0.26s ease';
+  fromEl.style.opacity='0'; fromEl.style.transform='translateX(-50px) scale(0.97)';
+  setTimeout(()=>{
+    fromEl.classList.add('hidden');
+    fromEl.style.transition=''; fromEl.style.opacity=''; fromEl.style.transform='';
+    updateTabs(null);
+    calcResult();
+    const result=document.getElementById('result');
+    result.classList.remove('hidden','enter-right');
+    void result.offsetWidth; result.classList.add('enter-right');
+    document.getElementById('kakao-btn').classList.remove('hidden');
+    document.getElementById('reset-btn').classList.remove('hidden');
+  },240);
+}
+
+// ══════════════════════════════════════════
+//  견적 계산
+// ══════════════════════════════════════════
+function calcResult() {
+  if(state.isInquiry) return;
+  const items=[]; let total=0;
+  const base=BASE_PRICE[state.step1][state.step3];
+  items.push({label:`기본 설치비 (${state.step3})`, price:base}); total+=base;
+
+  // 출장비
+  if(state.moveFee > 0) {
+    items.push({label:`이전 출장비 (약 ${state.distKm}km)`, price:state.moveFee});
+    total+=state.moveFee;
+  }
+
+  if(state.step4maker==='삼성'){items.push({label:'스마트링크 (삼성 전용)',price:SMARTLINK});total+=SMARTLINK;}
+  if(state.pipeCnt>0){const pp=PIPE_PRICE[state.step3]*state.pipeCnt;items.push({label:`배관 추가 ${state.pipeCnt}m`,price:pp});total+=pp;}
+  if(state.angle){const ap=ANGLE_PRICE[state.step3];items.push({label:'실외기 앵글',price:ap});total+=ap;}
+  if(state.pump){items.push({label:'배수펌프',price:PUMP});total+=PUMP;}
+
+  document.getElementById('total-price').innerHTML=total.toLocaleString()+' <span>원</span>';
+  let html='';
+  if(state.fromLabel && state.toLabel)
+    html+=`<div class="breakdown-row"><span>이전 장소</span><span>${state.fromLabel} → ${state.toLabel}</span></div>`;
+  if(state.year)
+    html+=`<div class="breakdown-row"><span>에어컨 년식</span><span>${state.year}년 / ${state.step4maker}</span></div>`;
+  items.forEach(i=>{
+    html+=`<div class="breakdown-row"><span>${i.label}</span><span>${i.price.toLocaleString()}원</span></div>`;
+  });
+  html+=`<div class="breakdown-row total-row"><span>합계</span><span>${total.toLocaleString()}원</span></div>`;
+  document.getElementById('breakdown').innerHTML=html;
+}
+
+function updateTabs(activeStep) {
+  for(let i=1;i<=STEP_MAX;i++){
+    const tab=document.getElementById('tab'+i);
+    tab.classList.remove('active','done');
+    if(activeStep===null||i<activeStep) tab.classList.add('done');
+    else if(i===activeStep) tab.classList.add('active');
+  }
+}
+
+function changePipe(d){
+  state.pipeCnt=Math.max(0,state.pipeCnt+d);
+  document.getElementById('pipe-cnt').textContent=state.pipeCnt;
+}
+function toggleExtra(key){
+  state[key]=!state[key];
+  document.getElementById(key+'-toggle').className='toggle-btn'+(state[key]?' on':'');
+}
+
+// ══════════════════════════════════════════
+//  카카오 공유
+// ══════════════════════════════════════════
+function shareKakao() {
+  const rows=document.getElementById('breakdown').querySelectorAll('.breakdown-row');
+  let itemText='';
+  rows.forEach(row=>{
+    const spans=row.querySelectorAll('span');
+    if(spans.length===2) itemText+=`• ${spans[0].textContent} : ${spans[1].textContent}\n`;
+  });
+  const totalText=document.getElementById('total-price').textContent.trim();
+  const date=new Date().toLocaleDateString('ko-KR',{year:'numeric',month:'long',day:'numeric'});
+  const msg=`❄️ JH에어컨 설치 견적서\n──────────────────\n${itemText}──────────────────\n💰 총 견적금액: ${totalText}\n──────────────────\n📅 견적일: ${date}\n\n※ 현장 상황에 따라 변동될 수 있습니다.\n정확한 견적은 방문 후 안내드립니다.`;
+  try {
+    if(typeof Kakao!=='undefined'&&Kakao.isInitialized()){
+      Kakao.Share.sendDefault({
+        objectType:'text', text:msg,
+        link:{ mobileWebUrl:'https://enule85-hub.github.io/aircon-/hume.html', webUrl:'https://enule85-hub.github.io/aircon-/hume.html' }
+      });
+    } else {
+      navigator.clipboard.writeText(msg).then(()=>alert('견적 내용이 클립보드에 복사됐어요!\n카카오톡에 붙여넣기 하세요 😊'));
+    }
+  } catch(e) {
+    navigator.clipboard.writeText(msg).then(()=>alert('견적 내용이 클립보드에 복사됐어요!\n카카오톡에 붙여넣기 하세요 😊'));
+  }
+}
+
+// ══════════════════════════════════════════
+//  리셋
+// ══════════════════════════════════════════
+function resetAll(){
+  state.step1=null; state.step3=null; state.step3Price=0;
+  state.step4maker=null; state.year=null;
+  state.pipeCnt=0; state.angle=false; state.pump=false; state.isInquiry=false;
+  state.fromCoord=null; state.toCoord=null;
+  state.fromLabel=''; state.toLabel='';
+  state.distKm=0; state.moveFee=0; state.moveLabel='';
+
+  document.getElementById('result').classList.add('hidden');
+  document.getElementById('kakao-btn').classList.add('hidden');
+  document.getElementById('reset-btn').classList.add('hidden');
+  document.getElementById('smartlink-desc').classList.remove('show');
+  document.getElementById('distance-badge').classList.remove('show');
+
+  ['from-sido','to-sido'].forEach(id => document.getElementById(id).value='');
+  ['from-sigungu','to-sigungu'].forEach(id => {
+    const el = document.getElementById(id);
+    el.innerHTML='<option value="">구/군/시 선택</option>';
+    el.disabled=true;
+  });
+  document.getElementById('year-select').value='';
+  document.getElementById('location-next-btn').disabled=true;
+  document.getElementById('location-next-btn').textContent='다음 단계 →';
+  document.querySelectorAll('.opt-btn').forEach(b=>b.classList.remove('selected'));
+
+  for(let i=2;i<=STEP_MAX;i++) document.getElementById('step'+i).classList.add('hidden');
+  const s1=document.getElementById('step1');
+  s1.classList.remove('hidden','enter-right','enter-left');
+  void s1.offsetWidth; s1.classList.add('enter-left');
+  updateTabs(1);
+}
+
+updateTabs(1);
+</script>
+</body>
+</html>
