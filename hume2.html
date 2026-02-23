@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0045)file:///C:/Users/enule/Downloads/hume_v3.html -->
+<!-- saved from url=(0047)file:///C:/Users/enule/Downloads/hume_v4_1.html -->
 <html lang="ko"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -25,6 +25,7 @@
       background: var(--bg);
       min-height: 100vh;
       color: var(--text);
+      overflow-x: hidden;
     }
 
     /* ── 헤더 ── */
@@ -69,7 +70,7 @@
       top: 17px; left: calc(50% + 18px);
       width: calc(100% - 36px); height: 2px;
       background: var(--border);
-      transition: background 0.35s;
+      transition: background 0.5s ease;
     }
     .tab-item.done:not(:last-child)::after { background: var(--accent); }
 
@@ -81,20 +82,22 @@
       display: flex; align-items: center; justify-content: center;
       font-size: 0.82rem; font-weight: 800; color: var(--sub);
       position: relative; z-index: 1;
-      transition: all 0.3s;
+      transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
     .tab-item.active .tab-num {
       border-color: var(--accent);
       background: linear-gradient(135deg, var(--primary), var(--accent));
       color: white;
-      box-shadow: 0 2px 12px rgba(37,99,235,0.35);
+      box-shadow: 0 2px 14px rgba(37,99,235,0.4);
+      transform: scale(1.12);
     }
     .tab-item.done .tab-num {
       border-color: var(--accent);
       background: var(--accent);
       color: white;
+      transform: scale(1);
     }
-    .tab-num-inner { line-height: 1; }
+    .tab-num-inner { line-height: 1; transition: opacity 0.2s; }
     .tab-item.done .tab-num-inner { display: none; }
     .tab-check { display: none; font-size: 0.78rem; }
     .tab-item.done .tab-check { display: block; }
@@ -107,30 +110,40 @@
     .tab-item.active .tab-label { color: var(--accent); font-weight: 700; }
     .tab-item.done .tab-label   { color: var(--accent); }
 
-    /* ── 컨테이너 ── */
-    .container {
+    /* ── 슬라이드 컨테이너 ── */
+    .slider-wrap {
       max-width: 560px;
       margin: 0 auto;
-      padding: 16px 16px 40px;
+      padding: 16px 16px 0;
+      position: relative;
+      overflow: hidden;
     }
 
-    /* ── 단계 카드 ── */
+    /* 카드 기본 */
     .step-card {
       background: var(--card);
       border-radius: 20px;
       box-shadow: var(--card-shadow);
       padding: 24px 20px 20px;
       border: 1.5px solid var(--border);
+      width: 100%;
+      position: relative;
     }
-    .step-card.slide-in-right { animation: slideRight 0.28s ease both; }
-    .step-card.slide-in-left  { animation: slideLeft  0.28s ease both; }
-    @keyframes slideRight {
-      from { opacity: 0; transform: translateX(28px); }
-      to   { opacity: 1; transform: translateX(0); }
+
+    /* 슬라이드 애니메이션 */
+    .step-card.enter-right {
+      animation: enterRight 0.42s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
     }
-    @keyframes slideLeft {
-      from { opacity: 0; transform: translateX(-28px); }
-      to   { opacity: 1; transform: translateX(0); }
+    .step-card.enter-left {
+      animation: enterLeft 0.42s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+    }
+    @keyframes enterRight {
+      from { opacity: 0; transform: translateX(60px) scale(0.97); }
+      to   { opacity: 1; transform: translateX(0)    scale(1); }
+    }
+    @keyframes enterLeft {
+      from { opacity: 0; transform: translateX(-60px) scale(0.97); }
+      to   { opacity: 1; transform: translateX(0)     scale(1); }
     }
 
     .step-header {
@@ -153,25 +166,49 @@
       padding: 16px 12px;
       font-family: inherit; font-size: 0.9rem; font-weight: 600;
       color: var(--text); cursor: pointer;
-      transition: all 0.18s; text-align: center; line-height: 1.5;
+      transition: border-color 0.18s, background 0.18s, transform 0.18s, box-shadow 0.18s;
+      text-align: center; line-height: 1.5;
+      position: relative;
+      overflow: hidden;
     }
-    .opt-btn:hover  { border-color: var(--accent); background: var(--primary-light); transform: translateY(-2px); }
+    .opt-btn::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(circle at center, rgba(255,255,255,0.35) 0%, transparent 70%);
+      opacity: 0; transition: opacity 0.3s;
+    }
+    .opt-btn:hover  {
+      border-color: var(--accent); background: var(--primary-light);
+      transform: translateY(-2px);
+    }
     .opt-btn.selected {
       border-color: var(--primary);
       background: linear-gradient(135deg, var(--primary), var(--accent));
       color: white; font-weight: 700;
-      box-shadow: 0 4px 16px rgba(27,58,107,0.25);
+      box-shadow: 0 6px 20px rgba(27,58,107,0.30);
+      transform: translateY(-1px);
     }
+    .opt-btn.selected::after { opacity: 1; }
+
+    /* 선택 시 체크 뱃지 */
+    .opt-btn.selected .check-mark { display: inline; }
+    .check-mark { display: none; }
 
     .desc-box {
       margin-top: 12px; background: #e8eef8;
       border: 1px solid #b8cce8; border-radius: 10px;
       padding: 10px 14px; font-size: 0.82rem;
-      color: var(--primary); font-weight: 600; display: none;
+      color: var(--primary); font-weight: 600;
+      max-height: 0; overflow: hidden; opacity: 0;
+      transition: max-height 0.35s ease, opacity 0.35s ease, padding 0.35s ease, margin 0.35s ease;
+      margin-top: 0; padding-top: 0; padding-bottom: 0;
     }
-    .desc-box.show { display: block; }
+    .desc-box.show {
+      max-height: 80px; opacity: 1;
+      padding: 10px 14px; margin-top: 12px;
+    }
 
-    /* 추가옵션 항목 */
+    /* 추가옵션 */
     .extra-item {
       display: flex; align-items: center;
       justify-content: space-between;
@@ -195,66 +232,65 @@
     .toggle-btn {
       width: 50px; height: 28px; border-radius: 14px;
       border: none; background: #d0ddf0;
-      cursor: pointer; position: relative; transition: background 0.25s; flex-shrink: 0;
+      cursor: pointer; position: relative;
+      transition: background 0.3s; flex-shrink: 0;
     }
     .toggle-btn::after {
       content: ''; position: absolute;
       top: 4px; left: 4px; width: 20px; height: 20px;
       border-radius: 50%; background: white;
-      transition: left 0.25s; box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+      transition: left 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.2);
     }
     .toggle-btn.on { background: linear-gradient(135deg, var(--primary), var(--accent)); }
     .toggle-btn.on::after { left: 26px; }
 
-    /* ── 이전/다음 버튼 영역 ── */
-    .nav-btns {
-      display: flex;
-      gap: 10px;
-      margin-top: 20px;
-    }
+    /* 이전 버튼 */
     .btn-prev {
-      flex: 0 0 auto;
-      padding: 15px 20px;
-      border-radius: 14px;
+      display: inline-flex; align-items: center; gap: 6px;
+      margin-top: 18px;
+      padding: 10px 16px;
+      border-radius: 12px;
       border: 1.5px solid var(--border);
       background: white;
-      font-family: inherit; font-size: 0.95rem; font-weight: 700;
+      font-family: inherit; font-size: 0.88rem; font-weight: 700;
       color: var(--sub); cursor: pointer;
       transition: all 0.18s;
-      display: flex; align-items: center; gap: 6px;
     }
     .btn-prev:hover { border-color: var(--primary); color: var(--primary); }
 
-    .btn-next {
-      flex: 1;
-      padding: 15px;
-      border-radius: 14px;
-      border: none;
+    /* 견적 확인 버튼 (4단계용) */
+    .btn-result {
+      display: block; width: 100%; margin-top: 18px;
+      padding: 16px;
+      border-radius: 14px; border: none;
       background: linear-gradient(135deg, var(--primary), var(--accent));
-      color: white; font-family: inherit; font-size: 1rem; font-weight: 800;
+      color: white; font-family: inherit;
+      font-size: 1rem; font-weight: 800;
       cursor: pointer; transition: all 0.2s;
       box-shadow: 0 4px 16px rgba(27,58,107,0.25);
-      display: flex; align-items: center; justify-content: center; gap: 6px;
     }
-    .btn-next:hover { opacity: 0.9; transform: translateY(-1px); }
-    .btn-next:disabled {
-      background: #c8d5e8; box-shadow: none;
-      cursor: not-allowed; transform: none; opacity: 1;
+    .btn-result:hover { opacity: 0.9; transform: translateY(-1px); }
+
+    /* ── 결과 카드 ── */
+    .container-bottom {
+      max-width: 560px;
+      margin: 0 auto;
+      padding: 14px 16px 50px;
     }
 
-    /* ── 견적 결과 ── */
     .result-card {
       background: linear-gradient(135deg, #1B3A6B 0%, #2563eb 100%);
       border-radius: 20px; padding: 28px 24px;
       color: white; box-shadow: 0 8px 32px rgba(27,58,107,0.25);
     }
-    .result-card.slide-in-right { animation: slideRight 0.28s ease both; }
+    .result-card.enter-right { animation: enterRight 0.42s cubic-bezier(0.25,0.46,0.45,0.94) both; }
     .result-title { font-size: 0.88rem; opacity: 0.88; margin-bottom: 6px; font-weight: 500; }
     .result-total { font-size: 2.4rem; font-weight: 900; letter-spacing: -1.5px; }
     .result-total span { font-size: 1rem; font-weight: 500; opacity: 0.85; }
     .result-breakdown {
       margin-top: 20px; background: rgba(0,0,0,0.15);
-      border-radius: 12px; padding: 16px; backdrop-filter: blur(4px);
+      border-radius: 12px; padding: 16px;
     }
     .breakdown-row {
       display: flex; justify-content: space-between;
@@ -280,15 +316,18 @@
     }
     .reset-btn:hover { background: var(--primary); color: white; border-color: var(--primary); }
 
-    /* 선택 필요 안내 */
-    .select-hint {
-      margin-top: 10px; padding: 8px 14px;
-      background: #fff3cd; border: 1px solid #ffc107;
-      border-radius: 10px; font-size: 0.8rem;
-      color: #856404; font-weight: 600; display: none;
-      text-align: center;
+    /* 카카오 공유 버튼 */
+    .kakao-share-btn {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      width: 100%; margin-top: 12px;
+      padding: 15px; border-radius: 14px;
+      border: none; background: #FEE500;
+      font-family: inherit; font-size: 0.95rem; font-weight: 800;
+      color: #191919; cursor: pointer; transition: all 0.18s;
+      box-shadow: 0 2px 10px rgba(254,229,0,0.4);
     }
-    .select-hint.show { display: block; }
+    .kakao-share-btn:hover { background: #f0d800; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(254,229,0,0.5); }
+    .kakao-share-btn img { width: 22px; height: 22px; }
 
     .hidden { display: none !important; }
   </style>
@@ -302,34 +341,35 @@
 
 <!-- 진행 탭 -->
 <div class="step-tabs" id="step-tabs">
-  <div class="tab-item done" id="tab1">
+  <div class="tab-item active" id="tab1">
     <div class="tab-num"><span class="tab-num-inner">1</span><span class="tab-check">✓</span></div>
     <div class="tab-label">설치유형</div>
   </div>
-  <div class="tab-item done" id="tab2">
+  <div class="tab-item" id="tab2">
     <div class="tab-num"><span class="tab-num-inner">2</span><span class="tab-check">✓</span></div>
     <div class="tab-label">에어컨종류</div>
   </div>
-  <div class="tab-item done" id="tab3">
+  <div class="tab-item" id="tab3">
     <div class="tab-num"><span class="tab-num-inner">3</span><span class="tab-check">✓</span></div>
     <div class="tab-label">제조사</div>
   </div>
-  <div class="tab-item active" id="tab4">
+  <div class="tab-item" id="tab4">
     <div class="tab-num"><span class="tab-num-inner">4</span><span class="tab-check">✓</span></div>
     <div class="tab-label">추가옵션</div>
   </div>
 </div>
 
-<div class="container">
+<!-- 슬라이드 영역 -->
+<div class="slider-wrap" id="slider-wrap">
 
   <!-- 1단계 -->
-  <div class="step-card slide-in-right hidden" id="step1">
+  <div class="step-card enter-right" id="step1">
     <div class="step-header">
       <span class="step-icon">🏠</span>
       <div class="step-title">설치 유형 선택</div>
     </div>
     <div class="options cols-1">
-      <button class="opt-btn selected" onclick="selectOpt(1,&#39;이전설치&#39;,this)">
+      <button class="opt-btn" onclick="selectOpt(1,&#39;이전설치&#39;,this)">
         이전설치<br>
         <small style="font-weight:400;font-size:0.78rem;opacity:0.7">기존 에어컨을 다른 장소로 이동</small>
       </button>
@@ -338,15 +378,10 @@
         <small style="font-weight:400;font-size:0.78rem;opacity:0.7">기존 장소에 다시 설치</small>
       </button>
     </div>
-    <div class="select-hint" id="hint1">⚠️ 설치 유형을 선택해주세요</div>
-    <div class="nav-btns">
-      <!-- 1단계는 이전 없음 -->
-      <button class="btn-next" onclick="goNext(1)">다음 단계 <span>→</span></button>
-    </div>
   </div>
 
   <!-- 2단계 -->
-  <div class="step-card slide-in-right hidden" id="step2">
+  <div class="step-card hidden" id="step2">
     <div class="step-header">
       <span class="step-icon">❄️</span>
       <div class="step-title">에어컨 종류 선택</div>
@@ -354,19 +389,15 @@
     <div class="options cols-1">
       <button class="opt-btn" onclick="selectOpt(2,&#39;벽걸이&#39;,this)">벽걸이 <span style="font-weight:400;opacity:0.75;font-size:0.82rem">160,000원</span><br><small style="font-weight:400;font-size:0.75rem;opacity:0.6">(기본설치비 배관5m+가스충전+타공1회)</small></button>
       <button class="opt-btn" onclick="selectOpt(2,&#39;스탠드&#39;,this)">스탠드 <span style="font-weight:400;opacity:0.75;font-size:0.82rem">190,000원</span><br><small style="font-weight:400;font-size:0.75rem;opacity:0.6">(기본설치비 배관5m+가스충전+타공1회)</small></button>
-      <button class="opt-btn selected" onclick="selectOpt(2,&#39;투인원&#39;,this)">투인원 <span style="font-weight:400;opacity:0.75;font-size:0.82rem">310,000원</span><br><small style="font-weight:400;font-size:0.75rem;opacity:0.6">(기본설치비 벽걸이5m+스탠드5m+가스충전+타공2회)</small></button>
+      <button class="opt-btn" onclick="selectOpt(2,&#39;투인원&#39;,this)">투인원 <span style="font-weight:400;opacity:0.75;font-size:0.82rem">310,000원</span><br><small style="font-weight:400;font-size:0.75rem;opacity:0.6">(기본설치비 벽걸이5m+스탠드5m+가스충전+타공2회)</small></button>
       <button class="opt-btn" onclick="selectOpt(2,&#39;냉난방벽걸이&#39;,this)">냉난방 벽걸이 <span style="font-weight:400;opacity:0.75;font-size:0.82rem">별도문의</span></button>
       <button class="opt-btn" onclick="selectOpt(2,&#39;냉난방스탠드&#39;,this)">냉난방 스탠드 <span style="font-weight:400;opacity:0.75;font-size:0.82rem">별도문의</span></button>
     </div>
-    <div class="select-hint" id="hint2">⚠️ 에어컨 종류를 선택해주세요</div>
-    <div class="nav-btns">
-      <button class="btn-prev" onclick="goPrev(2)"><span>←</span> 이전</button>
-      <button class="btn-next" onclick="goNext(2)">다음 단계 <span>→</span></button>
-    </div>
+    <button class="btn-prev" onclick="goPrev(2)">← 이전</button>
   </div>
 
   <!-- 3단계 -->
-  <div class="step-card slide-in-right hidden" id="step3">
+  <div class="step-card hidden" id="step3">
     <div class="step-header">
       <span class="step-icon">🏭</span>
       <div class="step-title">제조사 선택</div>
@@ -376,26 +407,22 @@
       <button class="opt-btn" onclick="selectOpt(3,&#39;삼성&#39;,this)">삼성</button>
       <button class="opt-btn" onclick="selectOpt(3,&#39;캐리어&#39;,this)">캐리어</button>
       <button class="opt-btn" onclick="selectOpt(3,&#39;위니아&#39;,this)">위니아</button>
-      <button class="opt-btn selected" onclick="selectOpt(3,&#39;기타&#39;,this)">기타</button>
+      <button class="opt-btn" onclick="selectOpt(3,&#39;기타&#39;,this)">기타</button>
     </div>
     <div class="desc-box" id="smartlink-desc">
       🔧 <strong>스마트링크 (+40,000원)</strong> — 삼성 전용 배관연결부속이 추가됩니다.
     </div>
-    <div class="select-hint" id="hint3">⚠️ 제조사를 선택해주세요</div>
-    <div class="nav-btns">
-      <button class="btn-prev" onclick="goPrev(3)"><span>←</span> 이전</button>
-      <button class="btn-next" onclick="goNext(3)">다음 단계 <span>→</span></button>
-    </div>
+    <button class="btn-prev" onclick="goPrev(3)">← 이전</button>
   </div>
 
   <!-- 4단계 -->
-  <div class="step-card slide-in-right" id="step4">
+  <div class="step-card hidden" id="step4">
     <div class="step-header">
       <span class="step-icon">⚙️</span>
       <div class="step-title">추가 옵션 선택</div>
     </div>
     <div class="extra-item">
-      <div class="extra-label">배관 추가<small id="pipe-price-label">1m당 18,000원</small></div>
+      <div class="extra-label">배관 추가<small id="pipe-price-label">1m당 15,000원</small></div>
       <div class="extra-controls">
         <button class="cnt-btn" onclick="changePipe(-1)">−</button>
         <div class="cnt-val" id="pipe-cnt">0</div>
@@ -404,7 +431,7 @@
       </div>
     </div>
     <div class="extra-item">
-      <div class="extra-label">실외기 앵글<small id="angle-price-label">스탠드/투인원용 120,000원</small></div>
+      <div class="extra-label">실외기 앵글<small id="angle-price-label">벽걸이용 100,000원</small></div>
       <div class="extra-controls">
         <button class="toggle-btn" id="angle-toggle" onclick="toggleExtra(&#39;angle&#39;)"></button>
       </div>
@@ -415,13 +442,14 @@
         <button class="toggle-btn" id="pump-toggle" onclick="toggleExtra(&#39;pump&#39;)"></button>
       </div>
     </div>
-    <div class="nav-btns">
-      <button class="btn-prev" onclick="goPrev(4)"><span>←</span> 이전</button>
-      <button class="btn-next" onclick="showResult()">견적 확인 <span>→</span></button>
-    </div>
+    <button class="btn-result" onclick="showResult()">견적 확인하기 →</button>
+    <button class="btn-prev" onclick="goPrev(4)">← 이전</button>
   </div>
 
-  <!-- 결과 -->
+</div><!-- /slider-wrap -->
+
+<!-- 결과 및 하단 버튼 -->
+<div class="container-bottom">
   <div class="result-card hidden" id="result">
     <div class="result-title">예상 견적 금액</div>
     <div class="result-total" id="total-price">0 <span>원</span></div>
@@ -431,181 +459,234 @@
       정확한 견적은 방문 후 안내드립니다.
     </div>
   </div>
-
+  <button class="kakao-share-btn hidden" id="kakao-btn" onclick="shareKakao()">
+    <img src="./hume2_files/kakaolink_btn_small.png" alt="카카오">
+    카카오톡으로 견적 저장하기
+  </button>
   <button class="reset-btn hidden" id="reset-btn" onclick="resetAll()">🔄 다시 계산하기</button>
-
 </div>
 
+<!-- 카카오 SDK -->
+<script src="./hume2_files/kakao.min.js.다운로드" integrity="sha384-TiCUE00h649CAMonG018J2ujOgDKW/kVWlChEuu4jK2vxfAAD0eZxzCKakxg55G4" crossorigin="anonymous"></script>
 <script>
   const state = {
     step1: null, step2: null, step2Price: 0,
     step3: null, pipeCnt: 0, angle: false, pump: false, isInquiry: false,
   };
 
-  const BASE_PRICE = {
-    '이전설치': { '벽걸이': 160000, '스탠드': 190000, '투인원': 310000, '냉난방벽걸이': null, '냉난방스탠드': null },
-    '재설치':   { '벽걸이': 160000, '스탠드': 190000, '투인원': 310000, '냉난방벽걸이': null, '냉난방스탠드': null }
-  };
-  const PIPE_PRICE  = { '벽걸이': 15000, '냉난방벽걸이': 15000, '스탠드': 18000, '투인원': 18000, '냉난방스탠드': 18000 };
-  const ANGLE_PRICE = { '벽걸이': 100000, '냉난방벽걸이': 100000, '스탠드': 120000, '투인원': 120000, '냉난방스탠드': 120000 };
-  const SMARTLINK = 40000, PUMP = 100000, STEP_MAX = 4;
+  // 카카오 SDK 초기화
+  Kakao.init('bea973d99b01f7dbebc13733311c2579');
 
-  // 선택 저장
+  const BASE_PRICE = {
+    '이전설치': { '벽걸이':160000,'스탠드':190000,'투인원':310000,'냉난방벽걸이':null,'냉난방스탠드':null },
+    '재설치':   { '벽걸이':160000,'스탠드':190000,'투인원':310000,'냉난방벽걸이':null,'냉난방스탠드':null }
+  };
+  const PIPE_PRICE  = { '벽걸이':15000,'냉난방벽걸이':15000,'스탠드':18000,'투인원':18000,'냉난방스탠드':18000 };
+  const ANGLE_PRICE = { '벽걸이':100000,'냉난방벽걸이':100000,'스탠드':120000,'투인원':120000,'냉난방스탠드':120000 };
+  const SMARTLINK=40000, PUMP=100000, STEP_MAX=4;
+
+  // ── 선택 → 자동 다음 단계 ──
   function selectOpt(step, val, btn) {
-    if (step === 1) state.step1 = val;
-    if (step === 2) {
+    // 버튼 하이라이트
+    btn.closest('.step-card').querySelectorAll('.opt-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+
+    // 상태 저장
+    if (step===1) state.step1 = val;
+    if (step===2) {
       state.step2 = val;
       const price = BASE_PRICE[state.step1][val];
-      state.step2Price = price || 0;
-      state.isInquiry  = (price === null);
+      state.step2Price = price||0;
+      state.isInquiry  = (price===null);
       document.getElementById('pipe-price-label').textContent = `1m당 ${(PIPE_PRICE[val]||15000).toLocaleString()}원`;
       const isWall = val==='벽걸이'||val==='냉난방벽걸이';
       document.getElementById('angle-price-label').textContent = isWall ? '벽걸이용 100,000원' : '스탠드/투인원용 120,000원';
     }
-    if (step === 3) {
+    if (step===3) {
       state.step3 = val;
       document.getElementById('smartlink-desc').classList.toggle('show', val==='삼성');
     }
-    // 버튼 하이라이트
-    btn.closest('.step-card').querySelectorAll('.opt-btn').forEach(b => b.classList.remove('selected'));
-    btn.classList.add('selected');
-    // 힌트 숨기기
-    const hint = document.getElementById('hint'+step);
-    if (hint) hint.classList.remove('show');
+
+    // 잠깐 선택 표시 후 다음 단계 자동 이동
+    setTimeout(() => {
+      if (step===1) goToStep(1, 2);
+      if (step===2) {
+        if (state.isInquiry) showInquiryResult();
+        else goToStep(2, 3);
+      }
+      if (step===3) goToStep(3, 4);
+    }, 320);
   }
 
-  // 다음 단계
-  function goNext(from) {
-    const val = from===1 ? state.step1 : from===2 ? state.step2 : state.step3;
-    if (from <= 3 && !val) {
-      document.getElementById('hint'+from).classList.add('show');
-      return;
-    }
-    // 별도문의: 2단계에서 바로 결과
-    if (from===2 && state.isInquiry) {
-      switchStep(from, null, true);
-      return;
-    }
-    switchStep(from, from+1, false);
-  }
-
-  // 이전 단계
+  // ── 이전 버튼 ──
   function goPrev(from) {
-    switchStep(from, from-1, false, true);
+    goToStep(from, from-1, true);
   }
 
-  // 단계 전환 (dir=true: 왼쪽에서 오는 애니)
-  function switchStep(fromStep, toStep, toResult, goingBack=false) {
-    // 현재 단계 숨기기
-    if (fromStep) {
-      const el = document.getElementById('step'+fromStep);
-      if (el) el.classList.add('hidden');
-    }
-    hide('result'); hide('reset-btn');
+  // ── 단계 전환 ──
+  function goToStep(from, to, goingBack=false) {
+    const fromEl = document.getElementById('step'+from);
+    const toEl   = document.getElementById('step'+to);
 
-    if (toResult) {
-      // 별도문의 결과
+    // 현재 카드를 슬라이드 아웃
+    fromEl.style.transition = 'opacity 0.28s ease, transform 0.28s ease';
+    fromEl.style.opacity = '0';
+    fromEl.style.transform = goingBack ? 'translateX(50px) scale(0.97)' : 'translateX(-50px) scale(0.97)';
+
+    setTimeout(() => {
+      fromEl.classList.add('hidden');
+      fromEl.style.transition=''; fromEl.style.opacity=''; fromEl.style.transform='';
+
+      // 다음 카드를 애니메이션과 함께 표시
+      toEl.classList.remove('hidden','enter-right','enter-left');
+      void toEl.offsetWidth; // reflow
+      toEl.classList.add(goingBack ? 'enter-left' : 'enter-right');
+
+      updateTabs(to);
+
+      // 4단계 진입 시 옵션 초기화
+      if (to===4 && !goingBack) {
+        state.pipeCnt=0; state.angle=false; state.pump=false;
+        document.getElementById('pipe-cnt').textContent='0';
+        document.getElementById('angle-toggle').className='toggle-btn';
+        document.getElementById('pump-toggle').className='toggle-btn';
+      }
+    }, 260);
+  }
+
+  // ── 별도문의 결과 ──
+  function showInquiryResult() {
+    const fromEl = document.getElementById('step2');
+    fromEl.style.transition='opacity 0.28s ease, transform 0.28s ease';
+    fromEl.style.opacity='0';
+    fromEl.style.transform='translateX(-50px) scale(0.97)';
+    setTimeout(()=>{
+      fromEl.classList.add('hidden');
+      fromEl.style.transition=''; fromEl.style.opacity=''; fromEl.style.transform='';
       updateTabs(null);
-      const result = document.getElementById('result');
-      result.classList.remove('hidden');
-      result.classList.remove('slide-in-right');
+      const result=document.getElementById('result');
+      result.classList.remove('hidden','enter-right');
       void result.offsetWidth;
-      result.classList.add('slide-in-right');
-      document.getElementById('total-price').innerHTML = '별도 문의 <span>필요</span>';
-      document.getElementById('breakdown').innerHTML = `
+      result.classList.add('enter-right');
+      document.getElementById('total-price').innerHTML='별도 문의 <span>필요</span>';
+      document.getElementById('breakdown').innerHTML=`
         <div class="breakdown-row"><span>${state.step2}</span><span>별도 견적</span></div>
         <div class="breakdown-row" style="margin-top:8px;opacity:0.85;font-size:0.8rem;">
           <span>📞 냉난방 제품은 현장 확인 후 정확한 견적을 안내드립니다.</span>
         </div>`;
-      show('reset-btn');
-      return;
-    }
-
-    updateTabs(toStep);
-    const el = document.getElementById('step'+toStep);
-    el.classList.remove('hidden');
-    el.classList.remove('slide-in-right');
-    el.classList.remove('slide-in-left');
-    void el.offsetWidth;
-    el.classList.add(goingBack ? 'slide-in-left' : 'slide-in-right');
-
-    // 3→4 이동시 옵션 초기화
-    if (toStep===4 && !goingBack) {
-      state.pipeCnt=0; state.angle=false; state.pump=false;
-      document.getElementById('pipe-cnt').textContent='0';
-      document.getElementById('angle-toggle').className='toggle-btn';
-      document.getElementById('pump-toggle').className='toggle-btn';
-    }
+      document.getElementById('kakao-btn').classList.remove('hidden');
+      document.getElementById('reset-btn').classList.remove('hidden');
+    },260);
   }
 
+  // 카카오톡 공유
+  function shareKakao() {
+    // 견적 내용 텍스트 구성
+    const breakdown = document.getElementById('breakdown');
+    const rows = breakdown.querySelectorAll('.breakdown-row');
+    let itemText = '';
+    rows.forEach(row => {
+      const spans = row.querySelectorAll('span');
+      if (spans.length === 2) {
+        itemText += `• ${spans[0].textContent} : ${spans[1].textContent}\n`;
+      }
+    });
+
+    const totalEl = document.getElementById('total-price');
+    const totalText = totalEl.textContent.trim();
+    const date = new Date().toLocaleDateString('ko-KR', {year:'numeric',month:'long',day:'numeric'});
+
+    Kakao.Share.sendDefault({
+      objectType: 'text',
+      text:
+`❄️ JH에어컨 설치 견적서
+──────────────────
+${itemText}──────────────────
+💰 총 견적금액: ${totalText}
+──────────────────
+📅 견적일: ${date}
+
+※ 현장 상황에 따라 변동될 수 있습니다.
+정확한 견적은 방문 후 안내드립니다.`,
+      link: {
+        mobileWebUrl: 'https://enule85-hub.github.io/aircon-/hume.html',
+        webUrl: 'https://enule85-hub.github.io/aircon-/hume.html',
+      },
+    });
+  }
+
+  // ── 결과 보기 (4단계 완료) ──
   function showResult() {
-    hide('step4');
-    updateTabs(null); // 모두 done
-    const result = document.getElementById('result');
-    result.classList.remove('hidden');
-    result.classList.remove('slide-in-right');
-    void result.offsetWidth;
-    result.classList.add('slide-in-right');
-    show('reset-btn');
-    calcResult();
+    const fromEl=document.getElementById('step4');
+    fromEl.style.transition='opacity 0.28s ease, transform 0.28s ease';
+    fromEl.style.opacity='0';
+    fromEl.style.transform='translateX(-50px) scale(0.97)';
+    setTimeout(()=>{
+      fromEl.classList.add('hidden');
+      fromEl.style.transition=''; fromEl.style.opacity=''; fromEl.style.transform='';
+      updateTabs(null);
+      calcResult();
+      const result=document.getElementById('result');
+      result.classList.remove('hidden','enter-right');
+      void result.offsetWidth;
+      result.classList.add('enter-right');
+      document.getElementById('kakao-btn').classList.remove('hidden');
+      document.getElementById('reset-btn').classList.remove('hidden');
+    },260);
   }
 
   function calcResult() {
-    if (state.isInquiry) return;
-    const items = []; let total = 0;
-    const base = BASE_PRICE[state.step1][state.step2];
-    items.push({ label:`기본 설치비 (${state.step1} · ${state.step2})`, price: base }); total += base;
-    if (state.step3==='삼성')  { items.push({ label:'스마트링크 (삼성 전용)', price:SMARTLINK }); total+=SMARTLINK; }
-    if (state.pipeCnt>0) {
-      const pp = PIPE_PRICE[state.step2]*state.pipeCnt;
-      items.push({ label:`배관 추가 ${state.pipeCnt}m`, price:pp }); total+=pp;
-    }
-    if (state.angle) { const ap=ANGLE_PRICE[state.step2]; items.push({label:'실외기 앵글',price:ap}); total+=ap; }
-    if (state.pump)  { items.push({label:'배수펌프',price:PUMP}); total+=PUMP; }
-
-    document.getElementById('total-price').innerHTML = total.toLocaleString()+' <span>원</span>';
-    let html = items.map(i=>`<div class="breakdown-row"><span>${i.label}</span><span>${i.price.toLocaleString()}원</span></div>`).join('');
-    html += `<div class="breakdown-row total-row"><span>합계</span><span>${total.toLocaleString()}원</span></div>`;
-    document.getElementById('breakdown').innerHTML = html;
+    if(state.isInquiry) return;
+    const items=[]; let total=0;
+    const base=BASE_PRICE[state.step1][state.step2];
+    items.push({label:`기본 설치비 (${state.step1} · ${state.step2})`,price:base}); total+=base;
+    if(state.step3==='삼성'){items.push({label:'스마트링크 (삼성 전용)',price:SMARTLINK});total+=SMARTLINK;}
+    if(state.pipeCnt>0){const pp=PIPE_PRICE[state.step2]*state.pipeCnt;items.push({label:`배관 추가 ${state.pipeCnt}m`,price:pp});total+=pp;}
+    if(state.angle){const ap=ANGLE_PRICE[state.step2];items.push({label:'실외기 앵글',price:ap});total+=ap;}
+    if(state.pump){items.push({label:'배수펌프',price:PUMP});total+=PUMP;}
+    document.getElementById('total-price').innerHTML=total.toLocaleString()+' <span>원</span>';
+    let html=items.map(i=>`<div class="breakdown-row"><span>${i.label}</span><span>${i.price.toLocaleString()}원</span></div>`).join('');
+    html+=`<div class="breakdown-row total-row"><span>합계</span><span>${total.toLocaleString()}원</span></div>`;
+    document.getElementById('breakdown').innerHTML=html;
   }
 
   function updateTabs(activeStep) {
-    for (let i=1;i<=STEP_MAX;i++) {
-      const tab = document.getElementById('tab'+i);
+    for(let i=1;i<=STEP_MAX;i++){
+      const tab=document.getElementById('tab'+i);
       tab.classList.remove('active','done');
-      if (activeStep===null || i<activeStep) tab.classList.add('done');
-      else if (i===activeStep) tab.classList.add('active');
+      if(activeStep===null||i<activeStep) tab.classList.add('done');
+      else if(i===activeStep) tab.classList.add('active');
     }
   }
 
-  function changePipe(d) {
-    state.pipeCnt = Math.max(0, state.pipeCnt+d);
-    document.getElementById('pipe-cnt').textContent = state.pipeCnt;
+  function changePipe(d){
+    state.pipeCnt=Math.max(0,state.pipeCnt+d);
+    document.getElementById('pipe-cnt').textContent=state.pipeCnt;
   }
-  function toggleExtra(key) {
-    state[key] = !state[key];
+  function toggleExtra(key){
+    state[key]=!state[key];
     document.getElementById(key+'-toggle').className='toggle-btn'+(state[key]?' on':'');
   }
 
-  function resetAll() {
-    state.step1=null; state.step2=null; state.step3=null;
-    state.step2Price=0; state.pipeCnt=0; state.angle=false;
-    state.pump=false; state.isInquiry=false;
-    hide('result'); hide('reset-btn');
-    for(let i=2;i<=STEP_MAX;i++) hide('step'+i);
+  function resetAll(){
+    state.step1=null;state.step2=null;state.step3=null;
+    state.step2Price=0;state.pipeCnt=0;state.angle=false;
+    state.pump=false;state.isInquiry=false;
+
+    document.getElementById('result').classList.add('hidden');
+    document.getElementById('kakao-btn').classList.add('hidden');
+    document.getElementById('reset-btn').classList.add('hidden');
     document.getElementById('smartlink-desc').classList.remove('show');
-    document.querySelectorAll('.select-hint').forEach(h=>h.classList.remove('show'));
     document.querySelectorAll('.opt-btn').forEach(b=>b.classList.remove('selected'));
+
+    for(let i=2;i<=STEP_MAX;i++) document.getElementById('step'+i).classList.add('hidden');
+
     const s1=document.getElementById('step1');
-    s1.classList.remove('hidden');
-    s1.classList.remove('slide-in-right','slide-in-left');
+    s1.classList.remove('hidden','enter-right','enter-left');
     void s1.offsetWidth;
-    s1.classList.add('slide-in-left');
+    s1.classList.add('enter-left');
     updateTabs(1);
   }
-
-  function show(id) { document.getElementById(id).classList.remove('hidden'); }
-  function hide(id) { document.getElementById(id).classList.add('hidden'); }
 
   updateTabs(1);
 </script>
